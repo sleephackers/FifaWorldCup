@@ -37,6 +37,8 @@ import android.widget.TextView;
 
 import com.example.android.fifaworldcup.data.FifaContract.FifaEntry;
 
+import java.io.InputStream;
+
 
 public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>
 {
@@ -48,6 +50,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
 
         Button fab=(Button)findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener()

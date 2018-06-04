@@ -103,6 +103,14 @@ public class FifaProvider extends ContentProvider {
         if (venue == null ) {
             throw new IllegalArgumentException("Match requires valid venue");
         }
+        String icon1 = values.getAsString(FifaEntry.COLUMN_TEAM1_ICON);
+        if (icon1 == null) {
+            throw new IllegalArgumentException("Match requires valid icon");
+        }
+        String icon2 = values.getAsString(FifaEntry.COLUMN_TEAM2_ICON);
+        if (icon1 == null) {
+            throw new IllegalArgumentException("Match requires valid icon");
+        }
 
         SQLiteDatabase database = mDbHelper.getWritableDatabase();
 
@@ -172,7 +180,18 @@ public class FifaProvider extends ContentProvider {
                 throw new IllegalArgumentException("Match requires valid time");
             }
         }
-
+        if (values.containsKey(FifaEntry.COLUMN_TEAM1_ICON)) {
+            String team1icon = values.getAsString(FifaEntry.COLUMN_TEAM1_ICON);
+            if (team1icon == null) {
+                throw new IllegalArgumentException("Match requires valid icon");
+            }
+        }
+        if (values.containsKey(FifaEntry.COLUMN_TEAM2_ICON)) {
+            String team2icon = values.getAsString(FifaEntry.COLUMN_TEAM2_ICON);
+            if (team2icon == null) {
+                throw new IllegalArgumentException("Match requires valid icon");
+            }
+        }
         if (values.size() == 0) {
             return 0;
         }

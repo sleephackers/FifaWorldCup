@@ -40,6 +40,10 @@ public final class FifaContract {
 
         public final static String COLUMN_TIME = "time";
 
+        public final static String COLUMN_TEAM1_ICON = "team1icon";
+
+        public final static String COLUMN_TEAM2_ICON = "team2icon";
+
        /* public static boolean isValidGender(int gender) {
                      if (gender == GENDER_UNKNOWN || gender == GENDER_MALE || gender == GENDER_FEMALE) {
                                 return true;

@@ -35,7 +35,9 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.android.fifaworldcup.data.FifaContract.FifaEntry;
@@ -60,6 +62,10 @@ public class EditorActivity extends AppCompatActivity implements
     private EditText mdateEditText;
     private EditText mvenueEditText;
     private EditText mtimeEditText;
+    private ImageView micon1;
+    private ImageView micon2;
+    private String muri1;
+    private String muri2;
 
 
     private boolean mFixtureHasChanged = false;
@@ -99,6 +105,8 @@ public class EditorActivity extends AppCompatActivity implements
         mdateEditText = (EditText) findViewById(R.id.date);
         mvenueEditText = (EditText) findViewById(R.id.venue);
         mtimeEditText = (EditText) findViewById(R.id.time);
+        micon1 = (ImageView) findViewById(R.id.team1flag);
+        micon2 = (ImageView) findViewById(R.id.team2flag);
 
         mname1EditText.setOnTouchListener(mTouchListener);
         mname2EditText.setOnTouchListener(mTouchListener);
@@ -106,7 +114,52 @@ public class EditorActivity extends AppCompatActivity implements
         mvenueEditText.setOnTouchListener(mTouchListener);
         mtimeEditText.setOnTouchListener(mTouchListener);
 
+
+        micon1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mFixtureHasChanged = true;
+                Intent pickPhoto = new Intent(Intent.ACTION_PICK,
+                        android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                startActivityForResult(pickPhoto, 0);
+
+
+            }
+        });
+        micon2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent pickPhoto = new Intent(Intent.ACTION_PICK,
+                        android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                startActivityForResult(pickPhoto, 1);
+
+
+            }
+        });
+
     }
+
+    protected void onActivityResult(int requestCode, int resultCode, Intent imageReturnedIntent) {
+        super.onActivityResult(requestCode, resultCode, imageReturnedIntent);
+        switch (requestCode) {
+            case 0:
+                if (resultCode == RESULT_OK) {
+                    Uri selectedImage = imageReturnedIntent.getData();
+                    micon1.setImageURI(selectedImage);
+                    muri1 = selectedImage.toString();
+                }
+
+                break;
+            case 1:
+                if (resultCode == RESULT_OK) {
+                    Uri selectedImage = imageReturnedIntent.getData();
+                    micon2.setImageURI(selectedImage);
+                    muri2 = selectedImage.toString();
+                }
+                break;
+        }
+    }
+
 
 
 
@@ -119,9 +172,12 @@ public class EditorActivity extends AppCompatActivity implements
         String timeString = mtimeEditText.getText().toString().trim();
 
 
+
         if (mCurrentFixtureUri == null &&
                 TextUtils.isEmpty(name1String) && TextUtils.isEmpty(name2String) &&
-                TextUtils.isEmpty(dateString) && TextUtils.isEmpty(venueString)&& TextUtils.isEmpty(timeString))
+                TextUtils.isEmpty(dateString) && TextUtils.isEmpty(venueString) && TextUtils.isEmpty(timeString)
+            // &&TextUtils.isEmpty(muri1) && TextUtils.isEmpty(muri2)
+                )
         {
             return;
         }
@@ -132,6 +188,8 @@ public class EditorActivity extends AppCompatActivity implements
         values.put(FifaEntry.COLUMN_DATE, dateString);
         values.put(FifaEntry.COLUMN_VENUE, venueString);
         values.put(FifaEntry.COLUMN_TIME,timeString );
+        values.put(FifaEntry.COLUMN_TEAM1_ICON, muri1);
+        values.put(FifaEntry.COLUMN_TEAM2_ICON, muri2);
 
 
         if (mCurrentFixtureUri == null) {
@@ -222,6 +280,8 @@ public class EditorActivity extends AppCompatActivity implements
                 FifaEntry.COLUMN_DATE,
                 FifaEntry.COLUMN_VENUE,
                 FifaEntry.COLUMN_TIME,
+              FifaEntry.COLUMN_TEAM1_ICON,
+              FifaEntry.COLUMN_TEAM2_ICON
         };
 
         return new CursorLoader(this,   // Parent activity context
@@ -245,6 +305,8 @@ public class EditorActivity extends AppCompatActivity implements
             int dateColumnIndex = cursor.getColumnIndex(FifaEntry.COLUMN_DATE);
             int venueColumnIndex = cursor.getColumnIndex(FifaEntry.COLUMN_VENUE);
             int timeColumnIndex = cursor.getColumnIndex(FifaEntry.COLUMN_TIME);
+            int icon1ColumnIndex = cursor.getColumnIndex(FifaEntry.COLUMN_TEAM1_ICON);
+            int icon2ColumnIndex = cursor.getColumnIndex(FifaEntry.COLUMN_TEAM2_ICON);
 
             // Extract out the value from the Cursor for the given column index
             String name1 = cursor.getString(name1ColumnIndex);
@@ -252,6 +314,8 @@ public class EditorActivity extends AppCompatActivity implements
             String date = cursor.getString(dateColumnIndex);
             String venue = cursor.getString(venueColumnIndex);
             String time = cursor.getString(timeColumnIndex);
+            String icon1 = cursor.getString(icon1ColumnIndex);
+            String icon2 = cursor.getString(icon2ColumnIndex);
 
             // Update the views on the screen with the values from the database
             mname1EditText.setText(name1);
@@ -259,6 +323,8 @@ public class EditorActivity extends AppCompatActivity implements
             mdateEditText.setText(date);
             mvenueEditText.setText(venue);
             mtimeEditText.setText(time);
+            micon1.setImageURI(Uri.parse(icon1));
+            micon2.setImageURI(Uri.parse(icon2));
 
 
         }
@@ -271,6 +337,9 @@ public class EditorActivity extends AppCompatActivity implements
         mdateEditText.setText("");
         mvenueEditText.setText("");
         mtimeEditText.setText("");
+        micon1.setImageResource(R.drawable.fifabg);
+        micon2.setImageResource(R.drawable.fifabg);
+
     }
 
 
@@ -329,7 +398,7 @@ public class EditorActivity extends AppCompatActivity implements
                 Toast.makeText(this,"Error with deleting fixture",
                         Toast.LENGTH_SHORT).show();
             } else {
-                Toast.makeText(this, "f deleted",
+                Toast.makeText(this, "Fixture deleted",
                         Toast.LENGTH_SHORT).show();
             }
             finish();

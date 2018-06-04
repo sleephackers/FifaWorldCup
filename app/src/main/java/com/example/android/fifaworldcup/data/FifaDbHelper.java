@@ -41,7 +41,9 @@ public class FifaDbHelper extends SQLiteOpenHelper {
                 + FifaEntry.COLUMN_TEAM2_NAME + " TEXT NOT NULL, "
                 + FifaEntry.COLUMN_DATE + " DATE NOT NULL, "
                 + FifaEntry.COLUMN_VENUE + " TEXT NOT NULL, "
-                + FifaEntry.COLUMN_TIME + " TIME NOT NULL );";
+                + FifaEntry.COLUMN_TIME + " TIME NOT NULL, "
+                + FifaEntry.COLUMN_TEAM1_ICON + " TEXT NOT NULL, "
+                + FifaEntry.COLUMN_TEAM2_ICON + " TEXT NOT NULL );";
 
         db.execSQL(SQL_CREATE_FIXTURES_TABLE);
     }
