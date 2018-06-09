@@ -1,4 +1,3 @@
-
 package com.example.android.fifaworldcup;
 
 import android.app.AlertDialog;
