@@ -8,15 +8,16 @@ import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
+
 import com.example.android.fifaworldcup.data.FifaContract.FifaEntry;
+
 import android.util.Log;
 
 public class FifaProvider extends ContentProvider {
 
+    public static final String LOG_TAG = FifaProvider.class.getSimpleName();
     private static final int FIXTURES = 100;
-
     private static final int FIXTURES_ID = 101;
-
     private static final UriMatcher sUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
 
     static {
@@ -25,14 +26,12 @@ public class FifaProvider extends ContentProvider {
         sUriMatcher.addURI("com.example.android.fifaworldcup", "fixtures/#", FIXTURES_ID);
     }
 
-
-    public static final String LOG_TAG = FifaProvider.class.getSimpleName();
     private FifaDbHelper mDbHelper;
 
 
     @Override
     public boolean onCreate() {
-       mDbHelper = new FifaDbHelper(getContext());
+        mDbHelper = new FifaDbHelper(getContext());
 
         return true;
     }
@@ -62,7 +61,7 @@ public class FifaProvider extends ContentProvider {
             default:
                 throw new IllegalArgumentException("Cannot query unknown URI " + uri);
         }
-        cursor.setNotificationUri(getContext().getContentResolver(),uri);
+        cursor.setNotificationUri(getContext().getContentResolver(), uri);
         return cursor;
     }
 
@@ -92,15 +91,15 @@ public class FifaProvider extends ContentProvider {
             throw new IllegalArgumentException("Match requires a team name");
         }
         String date = values.getAsString(FifaEntry.COLUMN_DATE);
-        if (date == null ) {
+        if (date == null) {
             throw new IllegalArgumentException("Match requires valid date");
         }
         String venue = values.getAsString(FifaEntry.COLUMN_VENUE);
-        if (venue == null ) {
+        if (venue == null) {
             throw new IllegalArgumentException("Match requires valid venue");
         }
         String time = values.getAsString(FifaEntry.COLUMN_TIME);
-        if (venue == null ) {
+        if (venue == null) {
             throw new IllegalArgumentException("Match requires valid venue");
         }
         String icon1 = values.getAsString(FifaEntry.COLUMN_TEAM1_ICON);
@@ -119,7 +118,7 @@ public class FifaProvider extends ContentProvider {
             Log.e(LOG_TAG, "Failed to insert row for " + uri);
             return null;
         }
-        getContext().getContentResolver().notifyChange(uri,null);
+        getContext().getContentResolver().notifyChange(uri, null);
 
         return ContentUris.withAppendedId(uri, id);
     }
@@ -145,10 +144,10 @@ public class FifaProvider extends ContentProvider {
     private int updateFixture(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
 
         if (values.containsKey(FifaEntry.COLUMN_TEAM1_NAME)) {
-                String name1 = values.getAsString(FifaEntry.COLUMN_TEAM1_NAME);
-                if (name1 == null) {
-                    throw new IllegalArgumentException("Match requires a team name");
-                }
+            String name1 = values.getAsString(FifaEntry.COLUMN_TEAM1_NAME);
+            if (name1 == null) {
+                throw new IllegalArgumentException("Match requires a team name");
+            }
 
         }
         if (values.containsKey(FifaEntry.COLUMN_TEAM2_NAME)) {
@@ -162,7 +161,7 @@ public class FifaProvider extends ContentProvider {
 
         if (values.containsKey(FifaEntry.COLUMN_DATE)) {
             String date = values.getAsString(FifaEntry.COLUMN_DATE);
-            if (date == null ) {
+            if (date == null) {
                 throw new IllegalArgumentException("Match requires valid date");
             }
         }
@@ -170,13 +169,13 @@ public class FifaProvider extends ContentProvider {
 
         if (values.containsKey(FifaEntry.COLUMN_VENUE)) {
             String venue = values.getAsString(FifaEntry.COLUMN_VENUE);
-            if (venue == null ) {
+            if (venue == null) {
                 throw new IllegalArgumentException("Match requires valid venue");
             }
         }
         if (values.containsKey(FifaEntry.COLUMN_TIME)) {
             String time = values.getAsString(FifaEntry.COLUMN_TIME);
-            if (time == null ) {
+            if (time == null) {
                 throw new IllegalArgumentException("Match requires valid time");
             }
         }
@@ -200,7 +199,6 @@ public class FifaProvider extends ContentProvider {
         int rowsUpdated = database.update(FifaEntry.TABLE_NAME, values, selection, selectionArgs);
 
 
-
         if (rowsUpdated != 0) {
             getContext().getContentResolver().notifyChange(uri, null);
         }
@@ -210,15 +208,12 @@ public class FifaProvider extends ContentProvider {
     }
 
 
-
     @Override
-    public int delete(Uri uri, String selection, String[] selectionArgs)
-    {
+    public int delete(Uri uri, String selection, String[] selectionArgs) {
         int rowsDeleted;
         SQLiteDatabase database = mDbHelper.getWritableDatabase();
         final int match = sUriMatcher.match(uri);
-        switch (match)
-        {
+        switch (match) {
             case FIXTURES:
                 rowsDeleted = database.delete(FifaEntry.TABLE_NAME, selection, selectionArgs);
                 break;
@@ -231,8 +226,7 @@ public class FifaProvider extends ContentProvider {
                 throw new IllegalArgumentException("Deletion is not supported for " + uri);
         }
 
-        if (rowsDeleted != 0)
-        {
+        if (rowsDeleted != 0) {
             getContext().getContentResolver().notifyChange(uri, null);
 
         }

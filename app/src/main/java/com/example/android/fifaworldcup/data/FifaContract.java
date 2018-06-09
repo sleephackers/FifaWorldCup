@@ -12,8 +12,8 @@ public final class FifaContract {
     public static final String PATH_FIXTURE = "fixtures";
 
 
-
-    private FifaContract() {}
+    private FifaContract() {
+    }
 
     public static final class FifaEntry implements BaseColumns {
         public static final Uri CONTENT_URI = Uri.withAppendedPath(BASE_CONTENT_URI, PATH_FIXTURE);
@@ -30,9 +30,9 @@ public final class FifaContract {
 
         public final static String _ID = BaseColumns._ID;
 
-        public final static String COLUMN_TEAM1_NAME ="team1name";
+        public final static String COLUMN_TEAM1_NAME = "team1name";
 
-        public final static String COLUMN_TEAM2_NAME ="team2name";
+        public final static String COLUMN_TEAM2_NAME = "team2name";
 
         public final static String COLUMN_DATE = "date";
 

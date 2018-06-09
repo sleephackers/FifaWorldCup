@@ -1,54 +1,40 @@
-/*
- * Copyright (C) 2016 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+
 package com.example.android.fifaworldcup;
 
 import android.app.AlertDialog;
 import android.app.LoaderManager;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.CursorLoader;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
-import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.Spinner;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.android.fifaworldcup.data.FifaContract.FifaEntry;
 
+import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
 
 public class EditorActivity extends AppCompatActivity implements
         LoaderManager.LoaderCallbacks<Cursor> {
 
 
     private static final int EXISTING_FIXTURE_LOADER = 0;
-
 
 
     private Uri mCurrentFixtureUri;
@@ -67,6 +53,7 @@ public class EditorActivity extends AppCompatActivity implements
     private String muri1;
     private String muri2;
 
+    private boolean fall, pic1, pic2;
 
     private boolean mFixtureHasChanged = false;
 
@@ -113,106 +100,182 @@ public class EditorActivity extends AppCompatActivity implements
         mdateEditText.setOnTouchListener(mTouchListener);
         mvenueEditText.setOnTouchListener(mTouchListener);
         mtimeEditText.setOnTouchListener(mTouchListener);
-
+        micon1.setOnTouchListener(mTouchListener);
+        micon2.setOnTouchListener(mTouchListener);
 
         micon1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 mFixtureHasChanged = true;
-                Intent pickPhoto = new Intent(Intent.ACTION_PICK,
-                        android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                startActivityForResult(pickPhoto, 0);
+                AlertDialog.Builder builder = new AlertDialog.Builder(EditorActivity.this);
+                builder.setMessage("CHOOSE AN ACTION!");
+                builder.setPositiveButton("GALLERY", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        Intent pickPhoto = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                        startActivityForResult(pickPhoto, 10);
+                    }
+                });
+                builder.setNegativeButton("CAMERA", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        Intent takepicture = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                        startActivityForResult(takepicture, 11);
+                    }
+                });
 
-
+                // Create and show the AlertDialog
+                AlertDialog alertDialog = builder.create();
+                alertDialog.show();
             }
         });
         micon2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent pickPhoto = new Intent(Intent.ACTION_PICK,
-                        android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                startActivityForResult(pickPhoto, 1);
+                mFixtureHasChanged = true;
+                AlertDialog.Builder builder = new AlertDialog.Builder(EditorActivity.this);
+                builder.setMessage("CHOOSE AN ACTION!");
+                builder.setPositiveButton("GALLERY", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        Intent pickPhoto = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                        startActivityForResult(pickPhoto, 20);
+                    }
+                });
+                builder.setNegativeButton("CAMERA", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        Intent takepicture = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                        startActivityForResult(takepicture, 21);
+                    }
+                });
 
-
+                // Create and show the AlertDialog
+                AlertDialog alertDialog = builder.create();
+                alertDialog.show();
             }
         });
+
 
     }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent imageReturnedIntent) {
         super.onActivityResult(requestCode, resultCode, imageReturnedIntent);
         switch (requestCode) {
-            case 0:
+            case 10:
                 if (resultCode == RESULT_OK) {
+                    pic1 = true;
                     Uri selectedImage = imageReturnedIntent.getData();
                     micon1.setImageURI(selectedImage);
                     muri1 = selectedImage.toString();
+
+                }
+                break;
+            case 11:
+                if (resultCode == RESULT_OK) {
+                    pic1 = true;
+                    Bitmap photo = (Bitmap) imageReturnedIntent.getExtras().get("data");
+                    photo = crop(photo);
+                    Uri tempUri = getImageUri(getApplicationContext(), photo);
+                    micon1.setImageURI(tempUri);
+                    muri1 = tempUri.toString();
+
                 }
 
                 break;
-            case 1:
+            case 20:
                 if (resultCode == RESULT_OK) {
+                    pic2 = true;
                     Uri selectedImage = imageReturnedIntent.getData();
                     micon2.setImageURI(selectedImage);
                     muri2 = selectedImage.toString();
                 }
                 break;
+            case 21:
+                if (resultCode == RESULT_OK) {
+                    pic2 = true;
+                    Bitmap photo = (Bitmap) imageReturnedIntent.getExtras().get("data");
+                    photo = crop(photo);
+                    Uri tempUri = getImageUri(getApplicationContext(), photo);
+                    micon2.setImageURI(tempUri);
+                    muri2 = tempUri.toString();
+                }
+
+                break;
         }
     }
 
+    public Bitmap crop(Bitmap photo) {
+        Bitmap yourBitmap = photo;
+        Bitmap resized = Bitmap.createScaledBitmap(yourBitmap, 1250, 1250, true);
+        return resized;
+    }
 
+    public Uri getImageUri(Context inContext, Bitmap inImage) {
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        inImage.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
+        String path = MediaStore.Images.Media.insertImage(inContext.getContentResolver(), inImage, "Title", null);
+        return Uri.parse(path);
+    }
+
+    public String getRealPathFromURI(Uri uri) {
+        Cursor cursor = getContentResolver().query(uri, null, null, null, null);
+        cursor.moveToFirst();
+        int idx = cursor.getColumnIndex(MediaStore.Images.ImageColumns.DATA);
+        return cursor.getString(idx);
+    }
 
 
     private void saveFixture() {
-
         String name1String = mname1EditText.getText().toString().trim();
         String name2String = mname2EditText.getText().toString().trim();
         String dateString = mdateEditText.getText().toString().trim();
         String venueString = mvenueEditText.getText().toString().trim();
         String timeString = mtimeEditText.getText().toString().trim();
 
-
-
-        if (mCurrentFixtureUri == null &&
-                TextUtils.isEmpty(name1String) && TextUtils.isEmpty(name2String) &&
-                TextUtils.isEmpty(dateString) && TextUtils.isEmpty(venueString) && TextUtils.isEmpty(timeString)
-            // &&TextUtils.isEmpty(muri1) && TextUtils.isEmpty(muri2)
-                )
-        {
-            return;
-        }
-
-         ContentValues values = new ContentValues();
-        values.put(FifaEntry.COLUMN_TEAM1_NAME, name1String);
-        values.put(FifaEntry.COLUMN_TEAM2_NAME, name2String);
-        values.put(FifaEntry.COLUMN_DATE, dateString);
-        values.put(FifaEntry.COLUMN_VENUE, venueString);
-        values.put(FifaEntry.COLUMN_TIME,timeString );
-        values.put(FifaEntry.COLUMN_TEAM1_ICON, muri1);
-        values.put(FifaEntry.COLUMN_TEAM2_ICON, muri2);
-
-
-        if (mCurrentFixtureUri == null) {
-            Uri newUri = getContentResolver().insert(FifaEntry.CONTENT_URI, values);
-
-            if (newUri == null) {
-                Toast.makeText(this,"INSERT FAILED",
-                        Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(this,"INSERT SUCCESSFUL",
-                        Toast.LENGTH_SHORT).show();
-            }
+        if (name1String.isEmpty() || name2String.isEmpty() || dateString.isEmpty() || venueString.isEmpty() || timeString.isEmpty()) {
+            fall = false;
+            Toast.makeText(this, "ENTER PROPER DETAILS",
+                    Toast.LENGTH_SHORT).show();
         } else {
+            if (mCurrentFixtureUri == null)
+                if (pic1 == false || pic2 == false) {
+                    fall = false;
+                    Toast.makeText(this, "ENTER PROPER DETAILS",
+                            Toast.LENGTH_SHORT).show();
+                } else {
+                    fall = true;
 
-            int rowsAffected = getContentResolver().update(mCurrentFixtureUri, values, null, null);
 
-            if (rowsAffected == 0) {
-                Toast.makeText(this, "UPDATE FAILED",
-                        Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(this, "UPDATE SUCCESSFUL",
-                        Toast.LENGTH_SHORT).show();
-            }
+                    ContentValues values = new ContentValues();
+                    values.put(FifaEntry.COLUMN_TEAM1_NAME, name1String);
+                    values.put(FifaEntry.COLUMN_TEAM2_NAME, name2String);
+                    values.put(FifaEntry.COLUMN_DATE, dateString);
+                    values.put(FifaEntry.COLUMN_VENUE, venueString);
+                    values.put(FifaEntry.COLUMN_TIME, timeString);
+                    values.put(FifaEntry.COLUMN_TEAM1_ICON, muri1);
+                    values.put(FifaEntry.COLUMN_TEAM2_ICON, muri2);
+
+
+                    if (mCurrentFixtureUri == null) {
+                        Uri newUri = getContentResolver().insert(FifaEntry.CONTENT_URI, values);
+
+                        if (newUri == null) {
+                            Toast.makeText(this, "INSERT FAILED",
+                                    Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(this, "INSERT SUCCESSFUL",
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+
+                        int rowsAffected = getContentResolver().update(mCurrentFixtureUri, values, null, null);
+
+                        if (rowsAffected == 0) {
+                            Toast.makeText(this, "UPDATE FAILED",
+                                    Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(this, "UPDATE SUCCESSFUL",
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                }
         }
     }
 
@@ -227,13 +290,14 @@ public class EditorActivity extends AppCompatActivity implements
         switch (item.getItemId()) {
             case R.id.action_save:
                 saveFixture();
-                finish();
+                if (fall)
+                    finish();
                 return true;
             case R.id.action_delete:
                 showDeleteConfirmationDialog();
                 return true;
             case android.R.id.home:
-               if (!mFixtureHasChanged) {
+                if (!mFixtureHasChanged) {
                     NavUtils.navigateUpFromSameTask(EditorActivity.this);
                     return true;
                 }
@@ -273,15 +337,15 @@ public class EditorActivity extends AppCompatActivity implements
 
     @Override
     public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
-      String[] projection = {
+        String[] projection = {
                 FifaEntry._ID,
                 FifaEntry.COLUMN_TEAM1_NAME,
                 FifaEntry.COLUMN_TEAM2_NAME,
                 FifaEntry.COLUMN_DATE,
                 FifaEntry.COLUMN_VENUE,
                 FifaEntry.COLUMN_TIME,
-              FifaEntry.COLUMN_TEAM1_ICON,
-              FifaEntry.COLUMN_TEAM2_ICON
+                FifaEntry.COLUMN_TEAM1_ICON,
+                FifaEntry.COLUMN_TEAM2_ICON
         };
 
         return new CursorLoader(this,   // Parent activity context
@@ -309,13 +373,13 @@ public class EditorActivity extends AppCompatActivity implements
             int icon2ColumnIndex = cursor.getColumnIndex(FifaEntry.COLUMN_TEAM2_ICON);
 
             // Extract out the value from the Cursor for the given column index
-            String name1 = cursor.getString(name1ColumnIndex);
-            String name2 = cursor.getString(name2ColumnIndex);
+            final String name1 = cursor.getString(name1ColumnIndex);
+            final String name2 = cursor.getString(name2ColumnIndex);
             String date = cursor.getString(dateColumnIndex);
             String venue = cursor.getString(venueColumnIndex);
             String time = cursor.getString(timeColumnIndex);
-            String icon1 = cursor.getString(icon1ColumnIndex);
-            String icon2 = cursor.getString(icon2ColumnIndex);
+            muri1 = cursor.getString(icon1ColumnIndex);
+            muri2 = cursor.getString(icon2ColumnIndex);
 
             // Update the views on the screen with the values from the database
             mname1EditText.setText(name1);
@@ -323,8 +387,22 @@ public class EditorActivity extends AppCompatActivity implements
             mdateEditText.setText(date);
             mvenueEditText.setText(venue);
             mtimeEditText.setText(time);
-            micon1.setImageURI(Uri.parse(icon1));
-            micon2.setImageURI(Uri.parse(icon2));
+
+            try {
+                Bitmap bm = BitmapFactory.decodeStream(
+                        getContentResolver().openInputStream(Uri.parse(muri1)));
+                micon1.setImageBitmap(bm);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+            try {
+
+                Bitmap bm = BitmapFactory.decodeStream(
+                        getContentResolver().openInputStream(Uri.parse(muri2)));
+                micon2.setImageBitmap(bm);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
 
 
         }
@@ -342,10 +420,9 @@ public class EditorActivity extends AppCompatActivity implements
 
     }
 
-
     private void showUnsavedChangesDialog(
             DialogInterface.OnClickListener discardButtonClickListener) {
-         AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage("Discard your changes and quit editing?");
         builder.setPositiveButton("DISCARD", discardButtonClickListener);
         builder.setNegativeButton("KEEP EDITING", new DialogInterface.OnClickListener() {
@@ -371,7 +448,7 @@ public class EditorActivity extends AppCompatActivity implements
     }
 
     private void showDeleteConfirmationDialog() {
-       AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage("Delete this fixture");
         builder.setPositiveButton("DELETE", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
@@ -380,7 +457,7 @@ public class EditorActivity extends AppCompatActivity implements
         });
         builder.setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
-                 if (dialog != null) {
+                if (dialog != null) {
                     dialog.dismiss();
                 }
             }
@@ -393,9 +470,9 @@ public class EditorActivity extends AppCompatActivity implements
 
     private void deleteFixture() {
         if (mCurrentFixtureUri != null) {
-             int rowsDeleted = getContentResolver().delete(mCurrentFixtureUri, null, null);
+            int rowsDeleted = getContentResolver().delete(mCurrentFixtureUri, null, null);
             if (rowsDeleted == 0) {
-                Toast.makeText(this,"Error with deleting fixture",
+                Toast.makeText(this, "Error with deleting fixture",
                         Toast.LENGTH_SHORT).show();
             } else {
                 Toast.makeText(this, "Fixture deleted",
