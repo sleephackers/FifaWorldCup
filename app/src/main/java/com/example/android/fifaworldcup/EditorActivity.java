@@ -52,7 +52,7 @@ public class EditorActivity extends AppCompatActivity implements
     private String muri1;
     private String muri2;
 
-    private boolean fall, pic1, pic2;
+    private boolean fall;
 
     private boolean mFixtureHasChanged = false;
 
@@ -159,7 +159,6 @@ public class EditorActivity extends AppCompatActivity implements
         switch (requestCode) {
             case 10:
                 if (resultCode == RESULT_OK) {
-                    pic1 = true;
                     Uri selectedImage = imageReturnedIntent.getData();
                     micon1.setImageURI(selectedImage);
                     muri1 = selectedImage.toString();
@@ -168,7 +167,6 @@ public class EditorActivity extends AppCompatActivity implements
                 break;
             case 11:
                 if (resultCode == RESULT_OK) {
-                    pic1 = true;
                     Bitmap photo = (Bitmap) imageReturnedIntent.getExtras().get("data");
                     photo = crop(photo);
                     Uri tempUri = getImageUri(getApplicationContext(), photo);
@@ -180,7 +178,6 @@ public class EditorActivity extends AppCompatActivity implements
                 break;
             case 20:
                 if (resultCode == RESULT_OK) {
-                    pic2 = true;
                     Uri selectedImage = imageReturnedIntent.getData();
                     micon2.setImageURI(selectedImage);
                     muri2 = selectedImage.toString();
@@ -188,7 +185,6 @@ public class EditorActivity extends AppCompatActivity implements
                 break;
             case 21:
                 if (resultCode == RESULT_OK) {
-                    pic2 = true;
                     Bitmap photo = (Bitmap) imageReturnedIntent.getExtras().get("data");
                     photo = crop(photo);
                     Uri tempUri = getImageUri(getApplicationContext(), photo);
@@ -233,12 +229,12 @@ public class EditorActivity extends AppCompatActivity implements
             Toast.makeText(this, "ENTER PROPER DETAILS",
                     Toast.LENGTH_SHORT).show();
         } else {
-            if (mCurrentFixtureUri == null)
+           /* if (mCurrentFixtureUri == null)
                 if (pic1 == false || pic2 == false) {
                     fall = false;
                     Toast.makeText(this, "ENTER PROPER DETAILS",
                             Toast.LENGTH_SHORT).show();
-                } else {
+                } else {*/
                     fall = true;
 
 
@@ -274,7 +270,7 @@ public class EditorActivity extends AppCompatActivity implements
                                     Toast.LENGTH_SHORT).show();
                         }
                     }
-                }
+
         }
     }
 
